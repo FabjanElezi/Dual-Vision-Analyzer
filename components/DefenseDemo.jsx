@@ -194,12 +194,12 @@ export default function DefenseDemo() {
       background: "#0e0e1a", flexShrink: 0
     },
     h1: { fontSize: 14, fontWeight: "normal", color: "#c9a96e" },
-    sub: { fontSize: 11, color: "#7a7a9a", marginTop: 2, letterSpacing: 0.4 },
+    sub: { fontSize: 11, color: "#b0b0cc", marginTop: 2, letterSpacing: 0.4 },
     badge: {
       fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase",
-      color: "#9090b8", border: "1px solid #2a2a4a", padding: "3px 8px", borderRadius: 3
+      color: "#c0c0dc", border: "1px solid #3a3a5a", padding: "3px 8px", borderRadius: 3
     },
-    statusPill: { display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "#8888aa" },
+    statusPill: { display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "#b8b8d4" },
     dot: (state) => ({
       width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
       background: state === "ready" ? "#4a9e70" : state === "loading" ? "#c9a96e" : state === "model-loading" ? "#555570" : "#333348",
@@ -216,7 +216,7 @@ export default function DefenseDemo() {
     panelR: { padding: "24px 28px", display: "flex", flexDirection: "column", overflow: "hidden" },
     label: {
       fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
-      color: "#7070a0", marginBottom: 16, flexShrink: 0
+      color: "#a8a8cc", marginBottom: 16, flexShrink: 0
     },
     dropZone: {
       border: "1px dashed #1e1e32", borderRadius: 8,
@@ -227,8 +227,8 @@ export default function DefenseDemo() {
       opacity: modelReady ? 1 : 0.5
     },
     hint: { textAlign: "center" },
-    hintP: { fontSize: 13, color: "#7070a0" },
-    hintS: { fontSize: 11, color: "#555575", marginTop: 4 },
+    hintP: { fontSize: 13, color: "#a8a8cc" },
+    hintS: { fontSize: 11, color: "#9090b0", marginTop: 4 },
     preview: {
       maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
       borderRadius: 4, display: imageLoaded ? "block" : "none"
@@ -236,7 +236,7 @@ export default function DefenseDemo() {
     predList: { display: "flex", flexDirection: "column", gap: 16, flex: 1, overflow: "auto" },
     emptyState: {
       flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#666688", fontSize: 13, fontStyle: "italic", textAlign: "center"
+      color: "#a0a0c0", fontSize: 13, fontStyle: "italic", textAlign: "center"
     },
     predRow: { display: "flex", justifyContent: "space-between", marginBottom: 6 },
     predName: (isTop) => ({ fontSize: isTop ? 15 : 13, color: isTop ? "#e8c88a" : "#ddd8cc" }),
@@ -257,7 +257,7 @@ export default function DefenseDemo() {
     canvasBlock: { flex: 1, textAlign: "center" },
     canvasLabel: {
       display: "block", fontSize: 9, letterSpacing: 1.5,
-      textTransform: "uppercase", color: "#6060a0", marginBottom: 6
+      textTransform: "uppercase", color: "#a0a0c8", marginBottom: 6
     },
     canvas: {
       border: "1px solid #1a1a2e", borderRadius: 3,
@@ -267,17 +267,17 @@ export default function DefenseDemo() {
       padding: "16px 24px", display: "flex",
       flexDirection: "column", justifyContent: "center"
     },
-    explainText: { fontSize: 11, color: "#7878a8", lineHeight: 1.75 },
+    explainText: { fontSize: 11, color: "#b8b8d8", lineHeight: 1.75 },
     gold: { color: "#c9a96e" },
     foot: {
       borderTop: "1px solid #1a1a2e", background: "#0e0e1a",
       padding: "8px 28px", display: "flex", gap: 24,
       alignItems: "center", flexShrink: 0
     },
-    cmpItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#7070a0" },
+    cmpItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#a8a8c8" },
     cmpAcc: (isNN) => ({
       fontFamily: "monospace", fontSize: 14,
-      color: isNN ? "#e8c88a" : "#6060a0"
+      color: isNN ? "#e8c88a" : "#9090b8"
     }),
     loadingOverlay: {
       position: "absolute", inset: 0, background: "rgba(8,8,16,0.75)",
@@ -436,16 +436,16 @@ export default function DefenseDemo() {
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Classical HOG + SVM</span>
           <span style={s.cmpAcc(false)}>~54%</span>
-          <span style={{ fontSize: 10, color: "#555580" }}>on CIFAR-10</span>
+          <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#333358" }}>|</span>
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Deep Learning CNN</span>
           <span style={s.cmpAcc(true)}>~76%</span>
-          <span style={{ fontSize: 10, color: "#555580" }}>on CIFAR-10</span>
+          <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#333358" }}>|</span>
-        <span style={{ fontSize: 10, color: "#555580", fontStyle: "italic" }}>
+        <span style={{ fontSize: 10, color: "#9898b8", fontStyle: "italic" }}>
           This demo illustrates Chapter 7 of the thesis — classical vs. deep learning image classification
         </span>
       </div>
