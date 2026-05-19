@@ -83,7 +83,7 @@ function drawHOG(ctx, gray, W, H) {
 }
 
 // ── COMPONENT ─────────────────────────────────────────────────────────────────
-const SZ = 110;
+const SZ = 160;
 
 export default function DefenseDemo() {
   const [predictions, setPredictions] = useState(null);
@@ -121,6 +121,21 @@ export default function DefenseDemo() {
     }
     loadModel();
     return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    function onKey(e) {
+      if (e.key !== "Escape") return;
+      setPredictions(null);
+      setLoading(false);
+      setError("");
+      setImageLoaded(false);
+      setTopLabel("");
+      if (previewRef.current) previewRef.current.src = "";
+      if (fileRef.current) fileRef.current.value = "";
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   const processImage = useCallback(async (file) => {
@@ -267,7 +282,7 @@ export default function DefenseDemo() {
       padding: "16px 24px", display: "flex",
       flexDirection: "column", justifyContent: "center"
     },
-    explainText: { fontSize: 11, color: "#b8b8d8", lineHeight: 1.75 },
+    explainText: { fontSize: 13, color: "#b8b8d8", lineHeight: 1.75 },
     gold: { color: "#c9a96e" },
     foot: {
       borderTop: "1px solid #1a1a2e", background: "#0e0e1a",
