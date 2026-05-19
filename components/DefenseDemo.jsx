@@ -108,7 +108,9 @@ export default function DefenseDemo() {
       try {
         await import("@tensorflow/tfjs");
         const { load } = await import("@tensorflow-models/mobilenet");
-        const m = await load();
+        // MobileNet v2 + alpha 1.0: wider network, inverted-residual blocks,
+        // better top-5 accuracy on ImageNet than v1 at the same alpha.
+        const m = await load({ version: 2, alpha: 1.0 });
         if (!cancelled) {
           modelRef.current = m;
           setModelReady(true);
@@ -137,17 +139,16 @@ export default function DefenseDemo() {
         previewRef.current.src = dataUrl;
         setImageLoaded(true);
 
-        const S = SZ;
         const c1 = cOrigRef.current.getContext("2d");
-        c1.drawImage(img, 0, 0, S, S);
+        c1.drawImage(img, 0, 0, SZ, SZ);
 
         const c2 = cGrayRef.current.getContext("2d");
-        c2.drawImage(img, 0, 0, S, S);
-        const id = c2.getImageData(0, 0, S, S);
-        const gray = toGray(id, S, S);
-        drawGray(c2, gray, S, S);
-        drawHOG(cHogRef.current.getContext("2d"), gray, S, S);
-        drawEdges(cEdgeRef.current.getContext("2d"), gray, S, S);
+        c2.drawImage(img, 0, 0, SZ, SZ);
+        const id = c2.getImageData(0, 0, SZ, SZ);
+        const gray = toGray(id, SZ, SZ);
+        drawGray(c2, gray, SZ, SZ);
+        drawHOG(cHogRef.current.getContext("2d"), gray, SZ, SZ);
+        drawEdges(cEdgeRef.current.getContext("2d"), gray, SZ, SZ);
 
         try {
           const raw = await modelRef.current.classify(img, 5);
@@ -225,7 +226,7 @@ export default function DefenseDemo() {
       overflow: "hidden", minHeight: 200,
       opacity: modelReady ? 1 : 0.5
     },
-    hint: { textAlign: "center", color: "#555575" },
+    hint: { textAlign: "center" },
     hintP: { fontSize: 13, color: "#7070a0" },
     hintS: { fontSize: 11, color: "#555575", marginTop: 4 },
     preview: {
@@ -237,7 +238,6 @@ export default function DefenseDemo() {
       flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
       color: "#666688", fontSize: 13, fontStyle: "italic", textAlign: "center"
     },
-    predItem: {},
     predRow: { display: "flex", justifyContent: "space-between", marginBottom: 6 },
     predName: (isTop) => ({ fontSize: isTop ? 15 : 13, color: isTop ? "#e8c88a" : "#ddd8cc" }),
     predPct: { fontSize: 12, fontFamily: "monospace", color: "#c9a96e" },
@@ -290,14 +290,24 @@ export default function DefenseDemo() {
   const statusText = !modelReady ? "Loading model…" : loading ? "Classifying…" : predictions ? "Ready" : "Waiting for image";
 
   return (
-    <div style={s.root}>
+    <div style={s.root} className="dva-root">
       <style>{`
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
         .drop-zone-inner:hover,.drop-zone-inner.over{border-color:#c9a96e!important;background:#0d0d18!important;}
+        @media(max-width:768px){
+          .dva-root{height:auto!important;min-height:100dvh;overflow-y:auto!important;}
+          .dva-header{flex-direction:column!important;align-items:flex-start!important;gap:10px;padding:12px 16px!important;}
+          .dva-main{grid-template-columns:1fr!important;overflow:visible!important;flex:none!important;}
+          .dva-panel{border-right:none!important;border-bottom:1px solid #1a1a2e;padding:20px 16px!important;}
+          .dva-panelR{padding:20px 16px!important;}
+          .dva-bottom{grid-template-columns:1fr!important;}
+          .dva-vizpanel{border-right:none!important;border-bottom:1px solid #1a1a2e;}
+          .dva-foot{flex-wrap:wrap!important;gap:10px!important;padding:12px 16px!important;}
+        }
       `}</style>
 
       {/* HEADER */}
-      <header style={s.header}>
+      <header style={s.header} className="dva-header">
         <div>
           <div style={s.h1}>The Role of Deep Learning in Digital Image Analysis</div>
           <div style={s.sub}>Bachelor Thesis Defense · Fabjan Elezi · Universiteti Metropolitan Tirana · June 2026</div>
@@ -312,9 +322,9 @@ export default function DefenseDemo() {
       </header>
 
       {/* MAIN */}
-      <div style={s.main}>
+      <div style={s.main} className="dva-main">
         {/* LEFT: Upload */}
-        <div style={s.panel}>
+        <div style={s.panel} className="dva-panel">
           <div style={s.label}>Input Image</div>
           <div
             ref={dropRef}
@@ -333,8 +343,8 @@ export default function DefenseDemo() {
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <polyline points="21 15 16 10 5 21" />
                 </svg>
-                <p style={s.hintP}>{modelReady ? "Drop an image here" : "Loading model…"}</p>
-                <span style={s.hintS}>{modelReady ? "or click to browse" : "please wait"}</span>
+                <p style={s.hintP}>{modelReady ? "Tap or drop an image" : "Loading model…"}</p>
+                <span style={s.hintS}>{modelReady ? "photos, camera, or any image" : "please wait"}</span>
               </div>
             )}
             <img ref={previewRef} alt="preview" style={s.preview} />
@@ -342,13 +352,10 @@ export default function DefenseDemo() {
           </div>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }}
             onChange={e => e.target.files[0] && processImage(e.target.files[0])} />
-          <div style={{ marginTop: 10, fontSize: 11, color: "#1e1e32", textAlign: "center", fontStyle: "italic" }}>
-            Try: animals, vehicles, food, everyday objects
-          </div>
         </div>
 
         {/* RIGHT: Predictions */}
-        <div style={s.panelR}>
+        <div style={s.panelR} className="dva-panelR">
           <div style={s.label}>Classification Results — Top 5 Predictions</div>
           {error && <div style={{ color: "#a05050", fontSize: 12, marginBottom: 12 }}>{error}</div>}
           {!predictions && !loading && (
@@ -365,7 +372,7 @@ export default function DefenseDemo() {
                 const pct = Math.round(p.confidence * 100);
                 const isTop = i === 0;
                 return (
-                  <div key={i} style={s.predItem}>
+                  <div key={i}>
                     <div style={s.predRow}>
                       <span style={s.predName(isTop)}>{i + 1}. {p.label}</span>
                       <span style={s.predPct}>{pct}%</span>
@@ -382,8 +389,8 @@ export default function DefenseDemo() {
       </div>
 
       {/* BOTTOM */}
-      <div style={s.bottom}>
-        <div style={s.vizPanel}>
+      <div style={s.bottom} className="dva-bottom">
+        <div style={s.vizPanel} className="dva-vizpanel">
           <div style={{ ...s.label, marginBottom: 10 }}>Image Analysis Visualizations</div>
           <div style={s.canvasRow}>
             {[
@@ -425,7 +432,7 @@ export default function DefenseDemo() {
       </div>
 
       {/* FOOTER */}
-      <div style={s.foot}>
+      <div style={s.foot} className="dva-foot">
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Classical HOG + SVM</span>
           <span style={s.cmpAcc(false)}>~54%</span>
