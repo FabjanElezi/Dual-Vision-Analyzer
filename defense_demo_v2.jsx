@@ -419,7 +419,7 @@ export default function DefenseDemo() {
               <br /><br />
               The <span style={s.gold}>HOG canvas</span> shows what a classical SVM classifier uses — 
               edge direction histograms in 8×8 pixel cells. The CNN learned its own features from 
-              labeled examples, which is why it outperforms HOG+SVM by ~20 percentage points on CIFAR-10.
+              labeled examples, which is why it outperforms HOG+SVM by ~19 percentage points on CIFAR-10.
             </p>
           ) : (
             <p style={s.explainText}>
@@ -436,13 +436,13 @@ export default function DefenseDemo() {
       <div style={s.foot}>
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Classical HOG + SVM</span>
-          <span style={s.cmpAcc(false)}>~54%</span>
+          <span style={s.cmpAcc(false)}>~50.15%</span>
           <span style={{ fontSize: 10, color: "#1e1e32" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#1a1a2e" }}>|</span>
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Deep Learning CNN</span>
-          <span style={s.cmpAcc(true)}>~76%</span>
+          <span style={s.cmpAcc(true)}>~69.25%</span>
           <span style={{ fontSize: 10, color: "#1e1e32" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#1a1a2e" }}>|</span>

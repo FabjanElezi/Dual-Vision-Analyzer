@@ -450,13 +450,13 @@ export default function DefenseDemo() {
       <div style={s.foot} className="dva-foot">
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Classical HOG + SVM</span>
-          <span style={s.cmpAcc(false)}>~54%</span>
+          <span style={s.cmpAcc(false)}>~50.15%</span>
           <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#333358" }}>|</span>
         <div style={s.cmpItem}>
           <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Deep Learning CNN</span>
-          <span style={s.cmpAcc(true)}>~76%</span>
+          <span style={s.cmpAcc(true)}>~69.25%</span>
           <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
         </div>
         <span style={{ color: "#333358" }}>|</span>
