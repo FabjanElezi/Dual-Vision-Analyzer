@@ -271,8 +271,8 @@ export default function DefenseDemo() {
     canvasRow: { display: "flex", gap: 14, marginTop: 4 },
     canvasBlock: { flex: 1, textAlign: "center" },
     canvasLabel: {
-      display: "block", fontSize: 9, letterSpacing: 1.5,
-      textTransform: "uppercase", color: "#a0a0c8", marginBottom: 6
+      display: "block", fontSize: 10, letterSpacing: 1.5,
+      textTransform: "uppercase", color: "#b4b4d4", marginBottom: 6
     },
     canvas: {
       border: "1px solid #1a1a2e", borderRadius: 3,
@@ -290,10 +290,22 @@ export default function DefenseDemo() {
       alignItems: "center", flexShrink: 0
     },
     cmpItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#a8a8c8" },
+    cmpName: { fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#b8b8d4" },
+    cmpOn: { fontSize: 11, color: "#b0b0cc" },
+    sep: { color: "#3a3a5a" },
+    footNote: { fontSize: 11, color: "#b0b0cc", fontStyle: "italic" },
     cmpAcc: (isNN) => ({
-      fontFamily: "monospace", fontSize: 14,
-      color: isNN ? "#e8c88a" : "#9090b8"
+      fontFamily: "monospace", fontSize: 18,
+      color: isNN ? "#e8c88a" : "#c4c4e4"
     }),
+    gapWrap: { marginTop: 18 },
+    gapCaption: { fontSize: 11, color: "#a8a8cc", marginBottom: 12, fontStyle: "italic" },
+    gapRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 9 },
+    gapName: { fontSize: 11, color: "#c0c0dc", width: 78, flexShrink: 0, textTransform: "uppercase", letterSpacing: 0.5 },
+    gapTrack: { flex: 1, height: 8, background: "#1a1a2e", borderRadius: 3, overflow: "hidden" },
+    gapFill: (w, top) => ({ height: "100%", width: w + "%", borderRadius: 3, background: top ? "#e8c88a" : "#8a8ac0", transition: "width 1s cubic-bezier(0.4,0,0.2,1)" }),
+    gapPct: (top) => ({ fontSize: 13, fontFamily: "monospace", color: top ? "#e8c88a" : "#c0c0e0", width: 52, textAlign: "right", flexShrink: 0 }),
+    gapBadge: { marginTop: 4, fontSize: 11, color: "#c9a96e", letterSpacing: 0.5 },
     loadingOverlay: {
       position: "absolute", inset: 0, background: "rgba(8,8,16,0.75)",
       display: "flex", alignItems: "center", justifyContent: "center",
@@ -373,13 +385,10 @@ export default function DefenseDemo() {
         <div style={s.panelR} className="dva-panelR">
           <div style={s.label}>Classification Results — Top 5 Predictions</div>
           {error && <div style={{ color: "#a05050", fontSize: 12, marginBottom: 12 }}>{error}</div>}
-          {!predictions && !loading && (
+          {!predictions && (
             <div style={s.emptyState}>
-              {modelReady ? "Upload an image to see predictions" : "Loading MobileNet model…"}
+              {loading ? "Analyzing image…" : modelReady ? "Upload an image to see predictions" : "Loading MobileNet model…"}
             </div>
-          )}
-          {loading && !predictions && (
-            <div style={s.emptyState}>Analyzing image…</div>
           )}
           {predictions && (
             <div style={s.predList}>
@@ -431,17 +440,34 @@ export default function DefenseDemo() {
               <br /><br />
               The <span style={s.gold}>edge map</span> traces the outlines that define this {topLabel}'s shape.
               The <span style={s.gold}>HOG canvas</span> bins those gradients into 8×8 cell histograms —
-              exactly what a classical SVM would use to classify it.
-              MobileNet instead learned its own filters from millions of labeled images,
-              which is why it reads this scene more accurately than HOG+SVM could.
+              exactly the hand-engineered features a classical SVM would use.
+              <span style={s.gold}> MobileNet</span> — the CNN running live here — instead learned its own
+              filters from millions of labeled images: the same advantage that let a CNN beat HOG+SVM by
+              <span style={s.gold}> ~19 points</span> in my CIFAR-10 tests.
             </p>
           ) : (
-            <p style={s.explainText}>
-              <span style={{ ...s.gold, fontStyle: "normal" }}>How this works:</span><br /><br />
-              Upload an image to see real-time classification. The HOG visualization shows
-              what classical feature extractors see. The predictions use a vision AI system —
-              the same approach underlying production image classifiers.
-            </p>
+            <div>
+              <p style={s.explainText}>
+                <span style={{ ...s.gold, fontStyle: "normal" }}>How this works</span><br /><br />
+                Upload any image — the live classifier (<span style={s.gold}>MobileNet</span>, a pretrained CNN)
+                returns its top-5 ImageNet predictions in real time, while the Grayscale, HOG and Edge panels
+                show the hand-engineered features a classical pipeline relies on.
+              </p>
+              <div style={s.gapWrap}>
+                <div style={s.gapCaption}>My measured CIFAR-10 accuracy (Chapter 7) — same data &amp; evaluation, both pipelines</div>
+                {[
+                  { name: "HOG + SVM", val: 50.15, top: false },
+                  { name: "CNN", val: 69.25, top: true },
+                ].map(({ name, val, top }) => (
+                  <div key={name} style={s.gapRow}>
+                    <span style={s.gapName}>{name}</span>
+                    <div style={s.gapTrack}><div style={s.gapFill(val, top)} /></div>
+                    <span style={s.gapPct(top)}>{val}%</span>
+                  </div>
+                ))}
+                <div style={s.gapBadge}>▲ ~19-point accuracy gap</div>
+              </div>
+            </div>
           )}
         </div>
       </div>
@@ -449,19 +475,19 @@ export default function DefenseDemo() {
       {/* FOOTER */}
       <div style={s.foot} className="dva-foot">
         <div style={s.cmpItem}>
-          <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Classical HOG + SVM</span>
+          <span style={s.cmpName}>Classical HOG + SVM</span>
           <span style={s.cmpAcc(false)}>~50.15%</span>
-          <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
+          <span style={s.cmpOn}>on CIFAR-10</span>
         </div>
-        <span style={{ color: "#333358" }}>|</span>
+        <span style={s.sep}>|</span>
         <div style={s.cmpItem}>
-          <span style={{ fontSize: 9, letterSpacing: 1, textTransform: "uppercase" }}>Deep Learning CNN</span>
+          <span style={s.cmpName}>Deep Learning CNN</span>
           <span style={s.cmpAcc(true)}>~69.25%</span>
-          <span style={{ fontSize: 10, color: "#9898b8" }}>on CIFAR-10</span>
+          <span style={s.cmpOn}>on CIFAR-10</span>
         </div>
-        <span style={{ color: "#333358" }}>|</span>
-        <span style={{ fontSize: 10, color: "#9898b8", fontStyle: "italic" }}>
-          This demo illustrates Chapter 7 of the thesis — classical vs. deep learning image classification
+        <span style={s.sep}>|</span>
+        <span style={s.footNote}>
+          My own measured results — Chapter 7: classical vs. deep learning image classification
         </span>
       </div>
     </div>
