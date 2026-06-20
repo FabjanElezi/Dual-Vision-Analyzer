@@ -85,6 +85,29 @@ function drawHOG(ctx, gray, W, H) {
 // ── COMPONENT ─────────────────────────────────────────────────────────────────
 const SZ = 160;
 
+// Two palettes. Every UI color is referenced through the active theme so the
+// dark/light toggle is a single source of truth — no per-element overrides.
+const THEMES = {
+  dark: {
+    bg: "#080810", panel: "#0e0e1a", hover: "#0d0d18",
+    line: "#1a1a2e", lineDash: "#1e1e32", lineStrong: "#3a3a5a",
+    text: "#ddd8cc", dim: "#b6b6d2", mute: "#9a9ab8",
+    accent: "#c9a96e", accentHi: "#e8c88a",
+    classical: "#c4c4e4", gapAlt: "#8a8ac0",
+    ok: "#4a9e70", dotModel: "#555570", dotIdle: "#333348",
+    overlay: "rgba(8,8,16,0.75)", iconStroke: "#2a2a44", error: "#a05050",
+  },
+  light: {
+    bg: "#f4f1ea", panel: "#ebe6db", hover: "#e7e1d3",
+    line: "#dcd5c6", lineDash: "#d0c8b6", lineStrong: "#c2b8a0",
+    text: "#2c2820", dim: "#55503f", mute: "#7a7363",
+    accent: "#946f2c", accentHi: "#7a5a1a",
+    classical: "#54526e", gapAlt: "#8a87ad",
+    ok: "#2f7a4f", dotModel: "#b0a890", dotIdle: "#cfc7b5",
+    overlay: "rgba(244,241,234,0.82)", iconStroke: "#c6bfae", error: "#a83a3a",
+  },
+};
+
 export default function DefenseDemo() {
   const [predictions, setPredictions] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -92,6 +115,7 @@ export default function DefenseDemo() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [topLabel, setTopLabel] = useState("");
   const [modelReady, setModelReady] = useState(false);
+  const [theme, setTheme] = useState("dark");
 
   const modelRef = useRef(null);
   const dropRef = useRef(null);
@@ -137,6 +161,20 @@ export default function DefenseDemo() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  // Restore the saved theme after mount (initial state stays "dark" to match
+  // the server-rendered HTML, so there's no hydration mismatch).
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("dva-theme");
+      if (saved === "light" || saved === "dark") setTheme(saved);
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("dva-theme", theme); } catch {}
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "dark" ? "light" : "dark"));
 
   const processImage = useCallback(async (file) => {
     if (!file?.type.startsWith("image/") || !modelRef.current) return;
@@ -197,27 +235,37 @@ export default function DefenseDemo() {
   };
   const onDragLeave = () => dropRef.current?.classList.remove("over");
 
+  const c = THEMES[theme];
   const s = {
     root: {
       display: "flex", flexDirection: "column", height: "100vh",
-      background: "#080810", color: "#ddd8cc",
-      fontFamily: "Georgia, serif", overflow: "hidden"
+      background: c.bg, color: c.text,
+      fontFamily: "Georgia, serif", overflow: "hidden",
+      transition: "background 0.3s ease, color 0.3s ease",
+      "--dva-accent": c.accent, "--dva-hover": c.hover, "--dva-line": c.line
     },
     header: {
       display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "12px 28px", borderBottom: "1px solid #1a1a2e",
-      background: "#0e0e1a", flexShrink: 0
+      padding: "12px 28px", borderBottom: `1px solid ${c.line}`,
+      background: c.panel, flexShrink: 0,
+      transition: "background 0.3s ease, border-color 0.3s ease"
     },
-    h1: { fontSize: 14, fontWeight: "normal", color: "#c9a96e" },
-    sub: { fontSize: 11, color: "#b0b0cc", marginTop: 2, letterSpacing: 0.4 },
+    h1: { fontSize: 14, fontWeight: "normal", color: c.accent },
+    sub: { fontSize: 11, color: c.dim, marginTop: 2, letterSpacing: 0.4 },
     badge: {
       fontSize: 10, letterSpacing: 1.5, textTransform: "uppercase",
-      color: "#c0c0dc", border: "1px solid #3a3a5a", padding: "3px 8px", borderRadius: 3
+      color: c.dim, border: `1px solid ${c.lineStrong}`, padding: "3px 8px", borderRadius: 3
     },
-    statusPill: { display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "#b8b8d4" },
+    themeBtn: {
+      display: "flex", alignItems: "center", justifyContent: "center",
+      width: 30, height: 30, padding: 0, borderRadius: 6, cursor: "pointer",
+      background: "transparent", border: `1px solid ${c.lineStrong}`, color: c.accent,
+      transition: "color 0.3s ease, border-color 0.2s ease"
+    },
+    statusPill: { display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: c.dim },
     dot: (state) => ({
       width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-      background: state === "ready" ? "#4a9e70" : state === "loading" ? "#c9a96e" : state === "model-loading" ? "#555570" : "#333348",
+      background: state === "ready" ? c.ok : state === "loading" ? c.accent : state === "model-loading" ? c.dotModel : c.dotIdle,
       animation: state !== "idle" ? "pulse 1.4s ease-in-out infinite" : "none"
     }),
     main: {
@@ -225,16 +273,16 @@ export default function DefenseDemo() {
       flex: 1, overflow: "hidden"
     },
     panel: {
-      padding: "24px 28px", borderRight: "1px solid #1a1a2e",
+      padding: "24px 28px", borderRight: `1px solid ${c.line}`,
       display: "flex", flexDirection: "column", overflow: "hidden"
     },
     panelR: { padding: "24px 28px", display: "flex", flexDirection: "column", overflow: "hidden" },
     label: {
       fontSize: 10, letterSpacing: 2, textTransform: "uppercase",
-      color: "#a8a8cc", marginBottom: 16, flexShrink: 0
+      color: c.dim, marginBottom: 16, flexShrink: 0
     },
     dropZone: {
-      border: "1px dashed #1e1e32", borderRadius: 8,
+      border: `1px dashed ${c.lineDash}`, borderRadius: 8,
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", flex: 1, cursor: modelReady ? "pointer" : "default",
       transition: "border-color 0.2s, background 0.2s", position: "relative",
@@ -242,8 +290,8 @@ export default function DefenseDemo() {
       opacity: modelReady ? 1 : 0.5
     },
     hint: { textAlign: "center" },
-    hintP: { fontSize: 13, color: "#a8a8cc" },
-    hintS: { fontSize: 11, color: "#9090b0", marginTop: 4 },
+    hintP: { fontSize: 13, color: c.dim },
+    hintS: { fontSize: 11, color: c.mute, marginTop: 4 },
     preview: {
       maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
       borderRadius: 4, display: imageLoaded ? "block" : "none"
@@ -251,65 +299,66 @@ export default function DefenseDemo() {
     predList: { display: "flex", flexDirection: "column", gap: 16, flex: 1, overflow: "auto" },
     emptyState: {
       flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-      color: "#a0a0c0", fontSize: 13, fontStyle: "italic", textAlign: "center"
+      color: c.mute, fontSize: 13, fontStyle: "italic", textAlign: "center"
     },
     predRow: { display: "flex", justifyContent: "space-between", marginBottom: 6 },
-    predName: (isTop) => ({ fontSize: isTop ? 15 : 13, color: isTop ? "#e8c88a" : "#ddd8cc" }),
-    predPct: { fontSize: 12, fontFamily: "monospace", color: "#c9a96e" },
-    barTrack: { height: 3, background: "#1a1a2e", borderRadius: 2, overflow: "hidden" },
+    predName: (isTop) => ({ fontSize: isTop ? 15 : 13, color: isTop ? c.accentHi : c.text }),
+    predPct: { fontSize: 12, fontFamily: "monospace", color: c.accent },
+    barTrack: { height: 3, background: c.line, borderRadius: 2, overflow: "hidden" },
     barFill: (w, isTop) => ({
       height: "100%", borderRadius: 2,
-      background: isTop ? "#e8c88a" : "#c9a96e",
+      background: isTop ? c.accentHi : c.accent,
       width: w + "%", transition: "width 0.9s cubic-bezier(0.4,0,0.2,1)"
     }),
     bottom: {
-      borderTop: "1px solid #1a1a2e",
+      borderTop: `1px solid ${c.line}`,
       display: "grid", gridTemplateColumns: "3fr 2fr",
       flexShrink: 0
     },
-    vizPanel: { padding: "16px 28px", borderRight: "1px solid #1a1a2e" },
+    vizPanel: { padding: "16px 28px", borderRight: `1px solid ${c.line}` },
     canvasRow: { display: "flex", gap: 14, marginTop: 4 },
     canvasBlock: { flex: 1, textAlign: "center" },
     canvasLabel: {
       display: "block", fontSize: 10, letterSpacing: 1.5,
-      textTransform: "uppercase", color: "#b4b4d4", marginBottom: 6
+      textTransform: "uppercase", color: c.dim, marginBottom: 6
     },
     canvas: {
-      border: "1px solid #1a1a2e", borderRadius: 3,
+      border: `1px solid ${c.line}`, borderRadius: 3,
       width: "100%", maxWidth: SZ, imageRendering: "pixelated"
     },
     explainPanel: {
       padding: "16px 24px", display: "flex",
       flexDirection: "column", justifyContent: "center"
     },
-    explainText: { fontSize: 13, color: "#b8b8d8", lineHeight: 1.75 },
-    gold: { color: "#c9a96e" },
+    explainText: { fontSize: 13, color: c.dim, lineHeight: 1.75 },
+    gold: { color: c.accent },
     foot: {
-      borderTop: "1px solid #1a1a2e", background: "#0e0e1a",
+      borderTop: `1px solid ${c.line}`, background: c.panel,
       padding: "8px 28px", display: "flex", gap: 24,
-      alignItems: "center", flexShrink: 0
+      alignItems: "center", flexShrink: 0,
+      transition: "background 0.3s ease, border-color 0.3s ease"
     },
-    cmpItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#a8a8c8" },
-    cmpName: { fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: "#b8b8d4" },
-    cmpOn: { fontSize: 11, color: "#b0b0cc" },
-    sep: { color: "#3a3a5a" },
-    footNote: { fontSize: 11, color: "#b0b0cc", fontStyle: "italic" },
+    cmpItem: { display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: c.dim },
+    cmpName: { fontSize: 10, letterSpacing: 1, textTransform: "uppercase", color: c.dim },
+    cmpOn: { fontSize: 11, color: c.mute },
+    sep: { color: c.lineStrong },
+    footNote: { fontSize: 11, color: c.mute, fontStyle: "italic" },
     cmpAcc: (isNN) => ({
       fontFamily: "monospace", fontSize: 18,
-      color: isNN ? "#e8c88a" : "#c4c4e4"
+      color: isNN ? c.accentHi : c.classical
     }),
     gapWrap: { marginTop: 18 },
-    gapCaption: { fontSize: 11, color: "#a8a8cc", marginBottom: 12, fontStyle: "italic" },
+    gapCaption: { fontSize: 11, color: c.dim, marginBottom: 12, fontStyle: "italic" },
     gapRow: { display: "flex", alignItems: "center", gap: 10, marginBottom: 9 },
-    gapName: { fontSize: 11, color: "#c0c0dc", width: 78, flexShrink: 0, textTransform: "uppercase", letterSpacing: 0.5 },
-    gapTrack: { flex: 1, height: 8, background: "#1a1a2e", borderRadius: 3, overflow: "hidden" },
-    gapFill: (w, top) => ({ height: "100%", width: w + "%", borderRadius: 3, background: top ? "#e8c88a" : "#8a8ac0", transition: "width 1s cubic-bezier(0.4,0,0.2,1)" }),
-    gapPct: (top) => ({ fontSize: 13, fontFamily: "monospace", color: top ? "#e8c88a" : "#c0c0e0", width: 52, textAlign: "right", flexShrink: 0 }),
-    gapBadge: { marginTop: 4, fontSize: 11, color: "#c9a96e", letterSpacing: 0.5 },
+    gapName: { fontSize: 11, color: c.dim, width: 78, flexShrink: 0, textTransform: "uppercase", letterSpacing: 0.5 },
+    gapTrack: { flex: 1, height: 8, background: c.line, borderRadius: 3, overflow: "hidden" },
+    gapFill: (w, top) => ({ height: "100%", width: w + "%", borderRadius: 3, background: top ? c.accentHi : c.gapAlt, transition: "width 1s cubic-bezier(0.4,0,0.2,1)" }),
+    gapPct: (top) => ({ fontSize: 13, fontFamily: "monospace", color: top ? c.accentHi : c.classical, width: 52, textAlign: "right", flexShrink: 0 }),
+    gapBadge: { marginTop: 4, fontSize: 11, color: c.accent, letterSpacing: 0.5 },
     loadingOverlay: {
-      position: "absolute", inset: 0, background: "rgba(8,8,16,0.75)",
+      position: "absolute", inset: 0, background: c.overlay,
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 11, color: "#c9a96e", letterSpacing: 2, textTransform: "uppercase"
+      fontSize: 11, color: c.accent, letterSpacing: 2, textTransform: "uppercase"
     }
   };
 
@@ -320,15 +369,16 @@ export default function DefenseDemo() {
     <div style={s.root} className="dva-root">
       <style>{`
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-        .drop-zone-inner:hover,.drop-zone-inner.over{border-color:#c9a96e!important;background:#0d0d18!important;}
+        .drop-zone-inner:hover,.drop-zone-inner.over{border-color:var(--dva-accent)!important;background:var(--dva-hover)!important;}
+        .dva-theme-btn:hover{border-color:var(--dva-accent)!important;}
         @media(max-width:768px){
           .dva-root{height:auto!important;min-height:100dvh;overflow-y:auto!important;}
           .dva-header{flex-direction:column!important;align-items:flex-start!important;gap:10px;padding:12px 16px!important;}
           .dva-main{grid-template-columns:1fr!important;overflow:visible!important;flex:none!important;}
-          .dva-panel{border-right:none!important;border-bottom:1px solid #1a1a2e;padding:20px 16px!important;}
+          .dva-panel{border-right:none!important;border-bottom:1px solid var(--dva-line);padding:20px 16px!important;}
           .dva-panelR{padding:20px 16px!important;}
           .dva-bottom{grid-template-columns:1fr!important;}
-          .dva-vizpanel{border-right:none!important;border-bottom:1px solid #1a1a2e;}
+          .dva-vizpanel{border-right:none!important;border-bottom:1px solid var(--dva-line);}
           .dva-foot{flex-wrap:wrap!important;gap:10px!important;padding:12px 16px!important;}
         }
       `}</style>
@@ -340,6 +390,27 @@ export default function DefenseDemo() {
           <div style={s.sub}>Bachelor Thesis Defense · Fabjan Elezi · Universiteti Metropolitan Tirana · June 2026</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            style={s.themeBtn}
+            className="dva-theme-btn"
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            title={theme === "dark" ? "Light mode" : "Dark mode"}
+          >
+            {theme === "dark" ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="4" />
+                <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+              </svg>
+            ) : (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />
+              </svg>
+            )}
+          </button>
           <span style={s.badge}>Dual Vision Analyzer</span>
           <div style={s.statusPill}>
             <div style={s.dot(statusState)} />
@@ -365,7 +436,7 @@ export default function DefenseDemo() {
             {!imageLoaded && (
               <div style={s.hint}>
                 <svg width="42" height="42" viewBox="0 0 24 24" fill="none"
-                  stroke="#2a2a44" strokeWidth="1" style={{ display: "block", margin: "0 auto 12px" }}>
+                  stroke={c.iconStroke} strokeWidth="1" style={{ display: "block", margin: "0 auto 12px" }}>
                   <rect x="3" y="3" width="18" height="18" rx="2" />
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <polyline points="21 15 16 10 5 21" />
@@ -384,7 +455,7 @@ export default function DefenseDemo() {
         {/* RIGHT: Predictions */}
         <div style={s.panelR} className="dva-panelR">
           <div style={s.label}>Classification Results — Top 5 Predictions</div>
-          {error && <div style={{ color: "#a05050", fontSize: 12, marginBottom: 12 }}>{error}</div>}
+          {error && <div style={{ color: c.error, fontSize: 12, marginBottom: 12 }}>{error}</div>}
           {!predictions && (
             <div style={s.emptyState}>
               {loading ? "Analyzing image…" : modelReady ? "Upload an image to see predictions" : "Loading MobileNet model…"}
