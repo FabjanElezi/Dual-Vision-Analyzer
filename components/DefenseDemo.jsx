@@ -524,7 +524,7 @@ export default function DefenseDemo() {
               exactly the hand-engineered features a classical SVM would use.
               <span style={s.gold}> MobileNet</span> — the CNN running live here — instead learned its own
               filters from millions of labeled images: the same advantage that let a CNN beat HOG+SVM by
-              <span style={s.gold}> ~19 points</span> in my CIFAR-10 tests.
+              <span style={s.gold}> ~18 points</span> in my CIFAR-10 tests.
             </p>
           ) : (
             <div>
@@ -537,8 +537,8 @@ export default function DefenseDemo() {
               <div style={s.gapWrap}>
                 <div style={s.gapCaption}>My measured CIFAR-10 accuracy (Chapter 7) — same data &amp; evaluation, both pipelines</div>
                 {[
-                  { name: "HOG + SVM", val: 50.15, top: false },
-                  { name: "CNN", val: 69.25, top: true },
+                  { name: "HOG + SVM", val: 51.66, top: false },
+                  { name: "CNN", val: 70.02, top: true },
                 ].map(({ name, val, top }) => (
                   <div key={name} style={s.gapRow}>
                     <span style={s.gapName}>{name}</span>
@@ -546,7 +546,7 @@ export default function DefenseDemo() {
                     <span style={s.gapPct(top)}>{val}%</span>
                   </div>
                 ))}
-                <div style={s.gapBadge}>▲ ~19-point accuracy gap</div>
+                <div style={s.gapBadge}>▲ ~18-point accuracy gap</div>
               </div>
             </div>
           )}
@@ -557,13 +557,13 @@ export default function DefenseDemo() {
       <div style={s.foot} className="dva-foot">
         <div style={s.cmpItem}>
           <span style={s.cmpName}>Classical HOG + SVM</span>
-          <span style={s.cmpAcc(false)}>~50.15%</span>
+          <span style={s.cmpAcc(false)}>~51.66%</span>
           <span style={s.cmpOn}>on CIFAR-10</span>
         </div>
         <span style={s.sep}>|</span>
         <div style={s.cmpItem}>
           <span style={s.cmpName}>Deep Learning CNN</span>
-          <span style={s.cmpAcc(true)}>~69.25%</span>
+          <span style={s.cmpAcc(true)}>~70.02%</span>
           <span style={s.cmpOn}>on CIFAR-10</span>
         </div>
         <span style={s.sep}>|</span>
