@@ -115,6 +115,7 @@ export default function DefenseDemo() {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [topLabel, setTopLabel] = useState("");
   const [modelReady, setModelReady] = useState(false);
+  const [modelFailed, setModelFailed] = useState(false);
   const [theme, setTheme] = useState("dark");
 
   const modelRef = useRef(null);
@@ -141,6 +142,7 @@ export default function DefenseDemo() {
         }
       } catch (e) {
         console.error("Model load failed:", e);
+        if (!cancelled) setModelFailed(true);
       }
     }
     loadModel();
@@ -188,6 +190,10 @@ export default function DefenseDemo() {
     reader.onload = (e) => {
       const dataUrl = e.target.result;
       const img = new Image();
+      img.onerror = () => {
+        setError("Couldn't read that image — try a JPG or PNG (phone HEIC files aren't supported).");
+        setLoading(false);
+      };
       img.onload = async () => {
         previewRef.current.src = dataUrl;
         setImageLoaded(true);
@@ -218,6 +224,10 @@ export default function DefenseDemo() {
         setLoading(false);
       };
       img.src = dataUrl;
+    };
+    reader.onerror = () => {
+      setError("Couldn't read that file.");
+      setLoading(false);
     };
     reader.readAsDataURL(file);
   }, []);
@@ -265,8 +275,8 @@ export default function DefenseDemo() {
     statusPill: { display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: c.dim },
     dot: (state) => ({
       width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
-      background: state === "ready" ? c.ok : state === "loading" ? c.accent : state === "model-loading" ? c.dotModel : c.dotIdle,
-      animation: state !== "idle" ? "pulse 1.4s ease-in-out infinite" : "none"
+      background: state === "ready" ? c.ok : state === "loading" ? c.accent : state === "model-loading" ? c.dotModel : state === "error" ? c.error : c.dotIdle,
+      animation: (state === "loading" || state === "model-loading") ? "pulse 1.4s ease-in-out infinite" : "none"
     }),
     main: {
       display: "grid", gridTemplateColumns: "1fr 1fr",
@@ -362,8 +372,8 @@ export default function DefenseDemo() {
     }
   };
 
-  const statusState = !modelReady ? "model-loading" : loading ? "loading" : predictions ? "ready" : "idle";
-  const statusText = !modelReady ? "Loading model…" : loading ? "Classifying…" : predictions ? "Ready" : "Waiting for image";
+  const statusState = modelFailed ? "error" : !modelReady ? "model-loading" : loading ? "loading" : predictions ? "ready" : "idle";
+  const statusText = modelFailed ? "Model failed to load" : !modelReady ? "Loading model…" : loading ? "Classifying…" : predictions ? "Ready" : "Waiting for image";
 
   return (
     <div style={s.root} className="dva-root">
@@ -441,8 +451,8 @@ export default function DefenseDemo() {
                   <circle cx="8.5" cy="8.5" r="1.5" />
                   <polyline points="21 15 16 10 5 21" />
                 </svg>
-                <p style={s.hintP}>{modelReady ? "Tap or drop an image" : "Loading model…"}</p>
-                <span style={s.hintS}>{modelReady ? "photos, camera, or any image" : "please wait"}</span>
+                <p style={s.hintP}>{modelReady ? "Tap or drop an image" : modelFailed ? "Model didn't load" : "Loading model…"}</p>
+                <span style={s.hintS}>{modelReady ? "photos, camera, or any image" : modelFailed ? "check your connection, then refresh the page" : "please wait"}</span>
               </div>
             )}
             <img ref={previewRef} alt="preview" style={s.preview} />
