@@ -135,7 +135,21 @@ export default function DefenseDemo() {
         const { load } = await import("@tensorflow-models/mobilenet");
         // MobileNet v2 + alpha 1.0: wider network, inverted-residual blocks,
         // better top-5 accuracy on ImageNet than v1 at the same alpha.
-        const m = await load({ version: 2, alpha: 1.0 });
+        //
+        // The library's built-in weights live on tfhub.dev, which Google retired:
+        // those URLs now redirect to a Kaggle landing page instead of the model,
+        // so a first-time visitor can hang on "Loading model...". Load the same
+        // MobileNetV2 from Google's TFJS bucket instead, and keep the library
+        // default as a fallback if the bucket is ever unreachable.
+        const MODEL_URL =
+          "https://storage.googleapis.com/tfjs-models/savedmodel/mobilenet_v2_1.0_224/model.json";
+        let m;
+        try {
+          m = await load({ version: 2, alpha: 1.0, modelUrl: MODEL_URL });
+        } catch (urlErr) {
+          console.warn("Hosted model URL failed, falling back to library default:", urlErr);
+          m = await load({ version: 2, alpha: 1.0 });
+        }
         if (!cancelled) {
           modelRef.current = m;
           setModelReady(true);
